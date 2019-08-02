@@ -1,161 +1,117 @@
 var express = require('express')
-var User = require('./models/user')
+var router = express.Router()
+var User = require('./models/user.js')
 var md5 = require('blueimp-md5')
 
-var router = express.Router()
-
-router.get('/', function (req, res) {
-  // console.log(req.session.user)
-  res.render('index.html', {
-    user: req.session.user
+router.get('/',function(req,res){
+  res.render('index.html',{
+    user:req.session.user
   })
+
+
 })
 
-router.get('/login', function (req, res) {
-  res.render('login.html')
+router.get('/login',function(req,res){
+  res.render('login.html') 
 })
 
-router.post('/login', function (req, res) {
-  // 1. 获取表单数据
-  // 2. 查询数据库用户名密码是否正确
-  // 3. 发送响应数据
+router.post('/login',function(req,res){
+  // 获取表单数据
   var body = req.body
-
+  // 查询数据库 用户名密码是否正确
   User.findOne({
-    email: body.email,
-    password: md5(md5(body.password))
-  }, function (err, user) {
-    if (err) {
+      email: body.email,
+      password:md5(md5(body.password))
+  },function(err,user){
+    if(err){
       return res.status(500).json({
-        err_code: 500,
-        message: err.message
+        err_code:500,
+        message:'Internal error'
       })
     }
-    
-    // 如果邮箱和密码匹配，则 user 是查询到的用户对象，否则就是 null
-    if (!user) {
+
+    if(!user){
       return res.status(200).json({
-        err_code: 1,
-        message: 'Email or password is invalid.'
+        err_code:1,
+        message:'Emal or password is invaild'
       })
-    }
-
-    // 用户存在，登陆成功，通过 Session 记录登陆状态
+    } 
+    
+    // 用户存在，登录成功，使用Session记录登录状态
     req.session.user = user
-
-    res.status(200).json({
-      err_code: 0,
-      message: 'OK'
+    return res.status(200).json({
+      err_code:0,
+      message:'OK'
     })
+      
+    
+
+
+
   })
 })
 
-router.get('/register', function (req, res) {
+router.get('/register',function(req,res){
   res.render('register.html')
 })
 
-router.post('/register', function (req, res) {
-  // 1. 获取表单提交的数据
-  //    req.body
-  // 2. 操作数据库
-  //    判断改用户是否存在
-  //    如果已存在，不允许注册
-  //    如果不存在，注册新建用户
-  // 3. 发送响应
+router.post('/register',function(req,res){
+  // 1.获取表单提交的数据
   var body = req.body
+  // 2.操作数据库
+    // 判断用户是否存在
   User.findOne({
-    $or: [{
-        email: body.email
+    // 或 条件查询
+    $or:[
+      {
+        email:body.email
       },
       {
-        nickname: body.nickname
+        nickname:body.nickname
       }
     ]
-  }, function (err, data) {
-    if (err) {
+  },function(err,data){
+    if(err){
       return res.status(500).json({
-        success: false,
-        message: '服务端错误'
+        err_code:500,
+        message:'Internal error'
       })
     }
-    // console.log(data)
-    if (data) {
-      // 邮箱或者昵称已存在
+    if(data){
+      //邮箱，昵称已存在
       return res.status(200).json({
-        err_code: 1,
-        message: 'Email or nickname aleady exists.'
+        err_code:1,
+        message:'Email or nickname aleady exists'
       })
-      return res.send(`邮箱或者密码已存在，请重试`)
     }
-
-    // 对密码进行 md5 重复加密
+    // 对密码 进行 md5 重复加密
     body.password = md5(md5(body.password))
-
-    new User(body).save(function (err, user) {
-      if (err) {
+    // Express 提供了一个响应方法，该方法接受一个对象作为参数，它会自动帮你把对象转为字符串再发送给浏览器
+    new User(body).save(function(err,user){
+      if(err){
         return res.status(500).json({
-          err_code: 500,
-          message: 'Internal error.'
+          err_code:500,
+          message:'Internal error'
         })
       }
 
-      // 注册成功，使用 Session 记录用户的登陆状态
+      // 注册成功，使用Session记录用户的登录状态
       req.session.user = user
 
-      // Express 提供了一个响应方法：json
-      // 该方法接收一个对象作为参数，它会自动帮你把对象转为字符串再发送给浏览器
       res.status(200).json({
-        err_code: 0,
-        message: 'OK'
+        err_code:0,
+        message:'OK'
       })
 
-      // 服务端重定向只针对同步请求才有效，异步请求无效
-      // res.redirect('/')
     })
   })
 })
-
-router.get('/logout', function (req, res) {
-  // 清除登陆状态
+ 
+router.get('/logout',function(req,res){
+  // 清除登录状态
   req.session.user = null
-
-  // 重定向到登录页
+  // (因为直接点退出触发a链接，是同步的)重定向到登录页
   res.redirect('/login')
 })
-
-// router.post('/register', async function (req, res) {
-//   var body = req.body
-//   try {
-//     if (await User.findOne({ email: body.email })) {
-//       return res.status(200).json({
-//         err_code: 1,
-//         message: '邮箱已存在'
-//       })
-//     }
-
-//     if (await User.findOne({ nickname: body.nickname })) {
-//       return res.status(200).json({
-//         err_code: 2,
-//         message: '昵称已存在'
-//       })
-//     }
-
-//     // 对密码进行 md5 重复加密
-//     body.password = md5(md5(body.password))
-
-//     // 创建用户，执行注册
-//     await new User(body).save()
-
-//     res.status(200).json({
-//       err_code: 0,
-//       message: 'OK'
-//     })
-//   } catch (err) {
-//     res.status(500).json({
-//       err_code: 500,
-//       message: err.message
-//     })
-//   }
-// })
 
 module.exports = router
