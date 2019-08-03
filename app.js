@@ -52,6 +52,18 @@ app.set('views',path.join(__dirname,'./views/'))
 // })
 
 
+// 配置一个处理404的中间件(注意顺序)
+app.use(function(req,res){
+  res.render('404.html')
+}) 
+
+  
+
+// 配置全局错误处理中间件
+// 跳到这个中间件的方法是： app.get('/',funvtion(req,res,next){fs.readFile('./README.md',function(err,data){if(err){next(err)})}})
+// app.use(function(err,req,res,next){
+//   res.status(500).send('error')
+// })
 
 app.listen(3000,function(){
   console.log("running 请打开 http://127.0.0.1:3000")
