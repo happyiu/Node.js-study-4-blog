@@ -65,6 +65,6 @@ app.use(function(req,res){
 //   res.status(500).send('error')
 // })
 
-app.listen(3000,function(){
-  console.log("running 请打开 http://127.0.0.1:3000")
+app.listen(3001,function(){
+  console.log("running 请打开 http://127.0.0.1:3001")
 })

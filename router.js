@@ -2,6 +2,8 @@ var express = require('express')
 var router = express.Router()
 var User = require('./models/user.js')
 var md5 = require('blueimp-md5')
+// var env = process.env.NODE_ENV || 'development'
+
 
 router.get('/',function(req,res){
   res.render('index.html',{

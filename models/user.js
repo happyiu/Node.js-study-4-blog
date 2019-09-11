@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost/blog',{useMongoClient:true})
+mongoose.connect('mongodb://i_blog_owner:1234@127.0.0.1:29999/blog',{useMongoClient:true})
 var Schema = mongoose.Schema
 
 var userSchema = new Schema({
