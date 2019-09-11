@@ -10,7 +10,7 @@
                 "NODE_ENV":"production"
             }
         }
-    ],
+    ], 
     "deploy":{
         "production":{
             "user":"i_manager",
